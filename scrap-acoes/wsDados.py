@@ -10,6 +10,8 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.common.keys import Keys
 from tabulate import tabulate  # <-- Adicionado
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'inteligencia-artificial')))
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'utils')))
+from utils import Utils
 from wsGemini import Gemini  # <-- Importando o módulo wsDados
 #######################
 ## variaveis globais ##
@@ -171,9 +173,26 @@ Sua resposta deve ser estruturada da seguinte forma:
 """
     
     gemini = Gemini()
+    utils = Utils()
+
     relatorioGemini = gemini.executarPrompt(prompt)
+    destinatarios = utils.obterDestinatarioEmail("wsAcoes")
+    
     print(prompt)
     print("\n\n\n")
     print(tabelaDados)
     print("\n\n\n")
     print(relatorioGemini)
+
+    relatorioEmail = f"""
+-> Dados extraídos do Status Invest na data {time.strftime('%d/%m/%Y %H:%M:%S')}:
+{tabelaDados}
+
+
+-> Relatório gerado por IA (Gemini) com base nos dados extraídos:
+{relatorioGemini}
+
+-> Prompt utilizado para gerar o relatório
+{prompt}
+"""
+    utils.enviarEmail(destinatarios, "Relatório de Ações e FIIs", relatorioGemini)
