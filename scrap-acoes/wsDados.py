@@ -1,3 +1,5 @@
+import os
+import sys
 import time
 from selenium import webdriver
 from selenium.webdriver.chrome.service import Service
@@ -7,7 +9,8 @@ from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.common.keys import Keys
 from tabulate import tabulate  # <-- Adicionado
-
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'inteligencia-artificial')))
+from wsGemini import Gemini  # <-- Importando o módulo wsDados
 #######################
 ## variaveis globais ##
 #######################
@@ -94,10 +97,17 @@ if __name__ == "__main__":
     # inpTickers = input("\n\nDigite os tickers das ações e FIIs separados por vírgulas: ")
     inpTickers = 'hglg11, snag11, mxrf11, bbas3, bbse3, taee4, alup3' # dados mocados para fins de teste
     tickers = [ticker.lower().replace(' ','') for ticker in inpTickers.split(",")]
+    instrucaoRecomendada = ''
+    instrucaoDetalhada = ''
+    
     for ticker in tickers:
         if len(ticker) > 6 or len(ticker) < 5:
             print(f"Ticker inválido: {ticker}. Deve ter entre 5 e 6 caracteres.")
             continue
+
+        instrucaoRecomendada += f"   * **{ticker.upper()}:** [Recomendação: Comprar/Vender/Manter]\n"
+        instrucaoDetalhada += f"   * **{ticker.upper()}:** [Recomendação: Comprar/Vender/Manter] - [Justificativa concisa baseada na análise.]\n"
+
         if ticker.endswith('11'):
             url = urlFii + ticker
             if not verificarPaginaFii(url):
@@ -109,9 +119,6 @@ if __name__ == "__main__":
             dadosRaspados.append(rasparDados(url))
         time.sleep(1)
     driver.quit()
-
-    # --- Formato de Tabela (tabulate) ---
-    print("\n\n--- Formato de Tabela ---")
 
     # Defina os cabeçalhos das colunas de acordo com as chaves dos seus dicionários
     headers = ["ticker", "valorAtual", "MenorValor", "MaiorValor", "pvp", "rmm", "segmento"]
@@ -126,4 +133,47 @@ if __name__ == "__main__":
         tabela_dados.append(linha)
 
     # Imprimir a tabela
-    print(tabulate(tabela_dados, headers=headers, tablefmt="grid"))
+    tabelaDados = tabulate(tabela_dados, headers=headers, tablefmt="grid") 
+    prompt = f"""
+Você é um especialista em análise de investimentos e mercado financeiro. Sua tarefa é analisar os dados de ações fornecidos, buscar informações complementares no site Status Invest (statusinvest.com.br) para o contexto geral do mercado e para ações similares, e, com base nisso, fornecer uma recomendação de investimento clara e um resumo da análise.
+**Dados de Ações para Análise:**
+Considere a seguinte tabela de dados de ações:
+{tabelaDados}
+**Instruções para a IA:**
+1.  **Análise dos Dados Fornecidos:**
+    * Avalie cada ativo (ticker) com base nos dados presentes na tabela (`valorAtual`, `MenorValor`, `MaiorValor`, `pvp`, `rmm`, `segmento`).
+    * Interprete o `pvp` (Preço sobre Valor Patrimonial) para identificar se o ativo está sendo negociado acima ou abaixo do seu valor patrimonial.
+    * Interprete o `rmm` (Rendimento médio mensal 'dividendos') para cada ativo. Se `rmm` for um cálculo ou abreviação interna, a IA pode inferir seu significado com base no contexto ou indicar uma suposição.
+    * Considere a variação entre `MenorValor` e `MaiorValor` para entender a volatilidade e o histórico de preços nas últimas 52 semanas.
+2.  **Consulta e Análise de Dados Gerais do Status Invest:**
+    * Para cada ticker listado, e para o contexto de cada segmento, consulte o site Status Invest para obter dados adicionais relevantes como:
+        * Dividend Yield (DY).
+        * Endividamento (Dívida Líquida/EBITDA).
+        * Crescimento de Receita/Lucro.
+        * Liquidez diária.
+        * Notícias recentes e eventos relevantes.
+    * Identifique e analise ações similares (do mesmo segmento ou com características de mercado semelhantes) às solicitadas no Status Invest. Compare os indicadores e o desempenho dessas ações com os da tabela fornecida.
+3.  **Geração da Recomendação de Investimento:**
+    * Com base na análise dos dados fornecidos e das informações complementares do Status Invest, forneça uma recomendação de investimento para o usuário.
+    * A recomendação deve ser clara, concisa e orientada para o usuário final, indicando se é uma boa oportunidade de compra, venda ou manutenção, e por quê.
+4.  **Resumo Geral da Análise:**
+    * Crie um breve resumo que sintetize os principais pontos da análise, cobrindo tanto as ações solicitadas quanto as ações similares.
+    * Destaque as conclusões mais importantes e os fatores-chave que influenciaram a recomendação.
+**Formato da Resposta:**
+Sua resposta deve ser estruturada da seguinte forma:
+**1. Recomendação de Investimento:**
+{instrucaoRecomendada}
+**2. Resumo Geral da Análise:**
+   [Breve parágrafo ou dois, resumindo as principais descobertas sobre as ações analisadas e o cenário de mercado, incluindo comparações com ações similares.]
+**3. Detalhamento da recomendação de Investimento:**
+{instrucaoDetalhada}
+---
+"""
+    
+    gemini = Gemini()
+    relatorioGemini = gemini.executarPrompt(prompt)
+    print(prompt)
+    print("\n\n\n")
+    print(tabelaDados)
+    print("\n\n\n")
+    print(relatorioGemini)
