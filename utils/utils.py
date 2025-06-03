@@ -26,9 +26,10 @@ class Utils:
 
     def enviarEmail(self, destinatarios, assunto, mensagem):
 
-        usuario, senha = self.obterAcessos("hotmail")
+        usuario, senha = self.obterAcessos("emailMacros")
+        print(usuario, senha)
 
-        smtp_server = "smtp-mail.outlook.com"
+        smtp_server = "smtp.office365.com"
         smtp_port = 587
 
         msgEmail = f"""
