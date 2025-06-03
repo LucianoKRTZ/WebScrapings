@@ -2,6 +2,8 @@ import smtplib
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 import pandas as pd
+from weasyprint import HTML
+from pathlib import Path
 
 
 class Utils:
@@ -57,3 +59,10 @@ Robô do Luciano.
             print("E-mail enviado com sucesso!")
         except Exception as e:
             print(f"Falha ao enviar e-mail: {e}")
+
+    def converterHTML2PDF(self, conteudoHTML, diretorioSaida, nomeArquivo):
+
+        caminhoSaida = Path(diretorioSaida) / f"{nomeArquivo}.pdf"
+        HTML(string=conteudoHTML).write_pdf(caminhoSaida)
+        print(f"PDF gerado em: {caminhoSaida}")
+        return caminhoSaida
