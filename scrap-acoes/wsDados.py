@@ -52,30 +52,34 @@ def rasparDados(url):
         driver.get(url)
         verificarPropaganda()
         if 'acoes' in url:
-            acao["valorAtual"] = driver.find_element(By.XPATH,'/html/body/main/div[2]/div/div[1]/div/div[1]/div/div[1]/strong').text
-            acao["MenorValor"] = driver.find_element(By.XPATH,'/html/body/main/div[2]/div/div[1]/div/div[2]/div/div[1]/strong').text
-            acao["MaiorValor"] = driver.find_element(By.XPATH,'/html/body/main/div[2]/div/div[1]/div/div[3]/div/div[1]/strong').text
+            acao["valorAtual"] = 'R$'+driver.find_element(By.XPATH,'/html/body/main/div[2]/div/div[1]/div/div[1]/div/div[1]/strong').text
+            acao["MenorValor"] = 'R$'+driver.find_element(By.XPATH,'/html/body/main/div[2]/div/div[1]/div/div[2]/div/div[1]/strong').text
+            acao["MaiorValor"] = 'R$'+driver.find_element(By.XPATH,'/html/body/main/div[2]/div/div[1]/div/div[3]/div/div[1]/strong').text
             acao["pvp"] = driver.find_element(By.XPATH,'/html/body/main/div[2]/div/div[8]/div[2]/div/div[1]/div/div[4]/div/div/strong').text
-            acao["rmm"] = driver.find_element(By.XPATH,'/html/body/main/div[3]/div/div[1]/div[2]/div[7]/div/div[1]/div[2]/div/div/strong').text                
+            acao["rmm"] = 'R$'+driver.find_element(By.XPATH,'/html/body/main/div[3]/div/div[1]/div[2]/div[7]/div/div[1]/div[2]/div/div/strong').text                
             acao["segmento"] = driver.find_element(By.XPATH,'/html/body/main/div[5]/div[1]/div/div[3]/div/div[3]/div/div/div/a/strong').text
-            if acao['rmm'] == '0,00':
-                acao["rmm"] = driver.find_element(By.XPATH,'/html/body/main/div[3]/div/div[1]/div[2]/div[7]/div/div[1]/div[1]/div/div/strong').text
+            if acao['rmm'] == 'R$0,00':
+                acao["rmm"] = 'R$'+driver.find_element(By.XPATH,'/html/body/main/div[3]/div/div[1]/div[2]/div[7]/div/div[1]/div[1]/div/div/strong').text
 
         else:
-            acao["valorAtual"] = driver.find_element(By.XPATH,'/html/body/main/div[2]/div[1]/div[1]/div/div[1]/strong').text
-            acao["MenorValor"] = driver.find_element(By.XPATH,'/html/body/main/div[2]/div[1]/div[2]/div/div[1]/strong').text
-            acao["MaiorValor"] = driver.find_element(By.XPATH,'/html/body/main/div[2]/div[1]/div[3]/div/div[1]/strong').text
+            acao["valorAtual"] = 'R$'+driver.find_element(By.XPATH,'/html/body/main/div[2]/div[1]/div[1]/div/div[1]/strong').text
+            acao["MenorValor"] = 'R$'+driver.find_element(By.XPATH,'/html/body/main/div[2]/div[1]/div[2]/div/div[1]/strong').text
+            acao["MaiorValor"] = 'R$'+driver.find_element(By.XPATH,'/html/body/main/div[2]/div[1]/div[3]/div/div[1]/strong').text
             
             if '/fundos-imobiliarios/' in url:
                 acao["pvp"] = driver.find_element(By.XPATH,'/html/body/main/div[2]/div[5]/div/div[2]/div/div[1]/strong').text
-                acao["rmm"] = driver.find_element(By.XPATH,'/html/body/main/div[2]/div[6]/div/div/div[1]/div/div/strong').text
+                acao["rmm"] = 'R$'+driver.find_element(By.XPATH,'/html/body/main/div[2]/div[6]/div/div/div[1]/div/div/strong').text
                 acao["segmento"] = driver.find_element(By.XPATH,'/html/body/main/div[3]/div/div/div[2]/div/div[6]/div/div/strong').text
             elif '/fiagros/' in url:
                 # Caso seja Fiagro o XPATH eh diferente para alguns campos
                 acao["pvp"] = driver.find_element(By.XPATH,'/html/body/main/div[2]/div[4]/div/div[2]/div/div[1]/strong').text
-                acao["rmm"] = driver.find_element(By.XPATH,'/html/body/main/div[2]/div[5]/div/div/div[1]/div/div/strong').text
+                acao["rmm"] = 'R$'+driver.find_element(By.XPATH,'/html/body/main/div[2]/div[5]/div/div/div[1]/div/div/strong').text
                 acao["segmento"] = driver.find_element(By.XPATH,'/html/body/main/div[4]/div/div/div[2]/div/div[6]/div/div/strong').text
     finally:
+        try:
+            acao['rmm'] = 'R$'+str(round(float(acao['rmm'].replace(',','.').replace('R$','')),2)).replace('.',',')
+        except:
+            pass
         return acao
     
 def verificarPaginaFii(url):
@@ -135,7 +139,7 @@ if __name__ == "__main__":
         tabela_dados.append(linha)
 
     # Imprimir a tabela
-    tabelaDados = tabulate(tabela_dados, headers=headers, tablefmt="grid") 
+    tabelaDados = tabulate(tabela_dados, headers=headers, tablefmt="html") 
     prompt = f"""
 Você é um especialista em análise de investimentos e mercado financeiro. Sua tarefa é analisar os dados de ações fornecidos, buscar informações complementares no site Status Invest (statusinvest.com.br) para o contexto geral do mercado e para ações similares, e, com base nisso, fornecer uma recomendação de investimento clara e um resumo da análise.
 **Dados de Ações para Análise:**
@@ -176,7 +180,6 @@ Sua resposta deve ser estruturada da seguinte forma:
     utils = Utils()
 
     relatorioGemini = gemini.executarPrompt(prompt)
-    destinatarios = utils.obterDestinatarioEmail("wsAcoes")
     
     print(prompt)
     print("\n\n\n")
@@ -184,15 +187,27 @@ Sua resposta deve ser estruturada da seguinte forma:
     print("\n\n\n")
     print(relatorioGemini)
 
+    for ticker in tickers:
+        relatorioGemini = relatorioGemini.replace(ticker.upper(), f"<b>{ticker.upper()}</b>")
+        relatorioGemini = relatorioGemini.replace(ticker.lower(), f"<b>{ticker.upper()}</b>")
+
     relatorioEmail = f"""
--> Dados extraídos do Status Invest na data {time.strftime('%d/%m/%Y %H:%M:%S')}:
+<h2>Relatório gerado na data {time.strftime('%d/%m/%Y %H:%M:%S')}</h2>
+<h3>
+Esta é uma análise feita por IA, portanto pode conter erros.<br>
+É recomendado que você verifique os fatos antes de qualquer movimentação financeira.<br>
+Tendo consiência disso, o desenvolvedor do programa não se responsabiliza por qualquer erro ou prejuízo causado por este relatório.<br><br>
+Boa leitura!
+</h3>
+
+<h2> → Dados extraídos do Status Invest:</h2>
 {tabelaDados}
 
 
--> Relatório gerado por IA (Gemini) com base nos dados extraídos:
-{relatorioGemini}
+<h2> → Relatório gerado por IA (Gemini) com base nos dados extraídos:</h2>
+{relatorioGemini.replace('\n','<br>').replace("1.","<br><h3>1.</h3>").replace("2.","<br><h3>2.</h3>").replace("3.","<br><h3>3.</h3>")}
 
--> Prompt utilizado para gerar o relatório
-{prompt}
+<h2> → Prompt utilizado para gerar o relatório</h2>
+{prompt.replace('\n','<br>')}
 """
-    utils.enviarEmail(destinatarios, "Relatório de Ações e FIIs", relatorioGemini)
+    utils.converterHTML2PDF(relatorioEmail,'/home/luciano/Área de trabalho/Relatorios/Acoes', f'Relatorio-IA-Acoes-{time.strftime("%d.%m.%Y")}')
