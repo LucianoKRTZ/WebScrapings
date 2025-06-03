@@ -40,44 +40,44 @@ def verificarPropaganda():
 
 def rasparDados(url):
     acao = {
-        "ticker":url.split("/")[-1].upper(), #Ticker da acao ou FII consultado
-        "valorAtual":"0.0", #Valor atual de comercializacao da acao
-        "MenorValor":"0.0", #Menor valor de comercializacao da acao
-        "MaiorValor":"0.0", #Maior valor de comercializacao da acao
-        "pvp":"0.0", #Preco sobre valor do patrimonio
-        "rmm":"0.0", #Rendimento mensal medio (dividendos)
+        "Ticker":url.split("/")[-1].upper(), #Ticker da acao ou FII consultado
+        "Valor Atual":"0.0", #Valor atual de comercializacao da acao
+        "Menor Valor":"0.0", #Menor valor de comercializacao da acao
+        "Maior Valor":"0.0", #Maior valor de comercializacao da acao
+        "P/VP":"0.0", #Preco sobre valor do patrimonio
+        "Média de Dividendos (24m)":"0.0", #Rendimento mensal medio (dividendos)
         "segmento":"Não encontrado", #Segmento da acao ou FII
     }
     try:
         driver.get(url)
         verificarPropaganda()
         if 'acoes' in url:
-            acao["valorAtual"] = 'R$'+driver.find_element(By.XPATH,'/html/body/main/div[2]/div/div[1]/div/div[1]/div/div[1]/strong').text
-            acao["MenorValor"] = 'R$'+driver.find_element(By.XPATH,'/html/body/main/div[2]/div/div[1]/div/div[2]/div/div[1]/strong').text
-            acao["MaiorValor"] = 'R$'+driver.find_element(By.XPATH,'/html/body/main/div[2]/div/div[1]/div/div[3]/div/div[1]/strong').text
-            acao["pvp"] = driver.find_element(By.XPATH,'/html/body/main/div[2]/div/div[8]/div[2]/div/div[1]/div/div[4]/div/div/strong').text
-            acao["rmm"] = 'R$'+driver.find_element(By.XPATH,'/html/body/main/div[3]/div/div[1]/div[2]/div[7]/div/div[1]/div[2]/div/div/strong').text                
+            acao["Valor Atual"] = 'R$'+driver.find_element(By.XPATH,'/html/body/main/div[2]/div/div[1]/div/div[1]/div/div[1]/strong').text
+            acao["Menor Valor"] = 'R$'+driver.find_element(By.XPATH,'/html/body/main/div[2]/div/div[1]/div/div[2]/div/div[1]/strong').text
+            acao["Maior Valor"] = 'R$'+driver.find_element(By.XPATH,'/html/body/main/div[2]/div/div[1]/div/div[3]/div/div[1]/strong').text
+            acao["P/VP"] = driver.find_element(By.XPATH,'/html/body/main/div[2]/div/div[8]/div[2]/div/div[1]/div/div[4]/div/div/strong').text
+            acao["Média de Dividendos (24m)"] = 'R$'+driver.find_element(By.XPATH,'/html/body/main/div[3]/div/div[1]/div[2]/div[7]/div/div[1]/div[2]/div/div/strong').text                
             acao["segmento"] = driver.find_element(By.XPATH,'/html/body/main/div[5]/div[1]/div/div[3]/div/div[3]/div/div/div/a/strong').text
-            if acao['rmm'] == 'R$0,00':
-                acao["rmm"] = 'R$'+driver.find_element(By.XPATH,'/html/body/main/div[3]/div/div[1]/div[2]/div[7]/div/div[1]/div[1]/div/div/strong').text
+            if acao['Média de Dividendos (24m)'] == 'R$0,00':
+                acao["Média de Dividendos (24m)"] = 'R$'+driver.find_element(By.XPATH,'/html/body/main/div[3]/div/div[1]/div[2]/div[7]/div/div[1]/div[1]/div/div/strong').text
 
         else:
-            acao["valorAtual"] = 'R$'+driver.find_element(By.XPATH,'/html/body/main/div[2]/div[1]/div[1]/div/div[1]/strong').text
-            acao["MenorValor"] = 'R$'+driver.find_element(By.XPATH,'/html/body/main/div[2]/div[1]/div[2]/div/div[1]/strong').text
-            acao["MaiorValor"] = 'R$'+driver.find_element(By.XPATH,'/html/body/main/div[2]/div[1]/div[3]/div/div[1]/strong').text
+            acao["Valor Atual"] = 'R$'+driver.find_element(By.XPATH,'/html/body/main/div[2]/div[1]/div[1]/div/div[1]/strong').text
+            acao["Menor Valor"] = 'R$'+driver.find_element(By.XPATH,'/html/body/main/div[2]/div[1]/div[2]/div/div[1]/strong').text
+            acao["Maior Valor"] = 'R$'+driver.find_element(By.XPATH,'/html/body/main/div[2]/div[1]/div[3]/div/div[1]/strong').text
             
             if '/fundos-imobiliarios/' in url:
-                acao["pvp"] = driver.find_element(By.XPATH,'/html/body/main/div[2]/div[5]/div/div[2]/div/div[1]/strong').text
-                acao["rmm"] = 'R$'+driver.find_element(By.XPATH,'/html/body/main/div[2]/div[6]/div/div/div[1]/div/div/strong').text
+                acao["P/VP"] = driver.find_element(By.XPATH,'/html/body/main/div[2]/div[5]/div/div[2]/div/div[1]/strong').text
+                acao["Média de Dividendos (24m)"] = 'R$'+driver.find_element(By.XPATH,'/html/body/main/div[2]/div[6]/div/div/div[1]/div/div/strong').text
                 acao["segmento"] = driver.find_element(By.XPATH,'/html/body/main/div[3]/div/div/div[2]/div/div[6]/div/div/strong').text
             elif '/fiagros/' in url:
                 # Caso seja Fiagro o XPATH eh diferente para alguns campos
-                acao["pvp"] = driver.find_element(By.XPATH,'/html/body/main/div[2]/div[4]/div/div[2]/div/div[1]/strong').text
-                acao["rmm"] = 'R$'+driver.find_element(By.XPATH,'/html/body/main/div[2]/div[5]/div/div/div[1]/div/div/strong').text
+                acao["P/VP"] = driver.find_element(By.XPATH,'/html/body/main/div[2]/div[4]/div/div[2]/div/div[1]/strong').text
+                acao["Média de Dividendos (24m)"] = 'R$'+driver.find_element(By.XPATH,'/html/body/main/div[2]/div[5]/div/div/div[1]/div/div/strong').text
                 acao["segmento"] = driver.find_element(By.XPATH,'/html/body/main/div[4]/div/div/div[2]/div/div[6]/div/div/strong').text
     finally:
         try:
-            acao['rmm'] = 'R$'+str(round(float(acao['rmm'].replace(',','.').replace('R$','')),2)).replace('.',',')
+            acao['Média de Dividendos (24m)'] = 'R$'+str(round(float(acao['Média de Dividendos (24m)'].replace(',','.').replace('R$','')),2)).replace('.',',')
         except:
             pass
         return acao
@@ -127,7 +127,7 @@ if __name__ == "__main__":
     driver.quit()
 
     # Defina os cabeçalhos das colunas de acordo com as chaves dos seus dicionários
-    headers = ["ticker", "valorAtual", "MenorValor", "MaiorValor", "pvp", "rmm", "segmento"]
+    headers = ["Ticker", "Valor Atual", "Menor Valor", "Maior Valor", "P/VP", "Média de Dividendos (24m)", "segmento"]
 
     # Preparar os dados para a tabela
     tabela_dados = []
@@ -147,10 +147,10 @@ Considere a seguinte tabela de dados de ações:
 {tabelaDados}
 **Instruções para a IA:**
 1.  **Análise dos Dados Fornecidos:**
-    * Avalie cada ativo (ticker) com base nos dados presentes na tabela (`valorAtual`, `MenorValor`, `MaiorValor`, `pvp`, `rmm`, `segmento`).
-    * Interprete o `pvp` (Preço sobre Valor Patrimonial) para identificar se o ativo está sendo negociado acima ou abaixo do seu valor patrimonial.
-    * Interprete o `rmm` (Rendimento médio mensal 'dividendos') para cada ativo. Se `rmm` for um cálculo ou abreviação interna, a IA pode inferir seu significado com base no contexto ou indicar uma suposição.
-    * Considere a variação entre `MenorValor` e `MaiorValor` para entender a volatilidade e o histórico de preços nas últimas 52 semanas.
+    * Avalie cada ativo (ticker) com base nos dados presentes na tabela (`Valor Atual`, `Menor Valor`, `Maior Valor`, `P/VP`, `Média de Dividendos (24m)`, `segmento`).
+    * Interprete o `P/VP` (Preço sobre Valor Patrimonial) para identificar se o ativo está sendo negociado acima ou abaixo do seu valor patrimonial.
+    * Interprete o `Média de Dividendos (24m)` (Rendimento médio mensal 'dividendos') para cada ativo. Se `Média de Dividendos (24m)` for um cálculo ou abreviação interna, a IA pode inferir seu significado com base no contexto ou indicar uma suposição.
+    * Considere a variação entre `Menor Valor` e `Maior Valor` para entender a volatilidade e o histórico de preços nas últimas 52 semanas.
 2.  **Consulta e Análise de Dados Gerais do Status Invest:**
     * Para cada ticker listado, e para o contexto de cada segmento, consulte o site Status Invest para obter dados adicionais relevantes como:
         * Dividend Yield (DY).
@@ -190,13 +190,15 @@ Sua resposta deve ser estruturada da seguinte forma:
     for ticker in tickers:
         relatorioGemini = relatorioGemini.replace(ticker.upper(), f"<b>{ticker.upper()}</b>")
         relatorioGemini = relatorioGemini.replace(ticker.lower(), f"<b>{ticker.upper()}</b>")
+    
+    relatorioGemini = relatorioGemini.replace("1. Recomendação de Investimento:","<br><h3>1. Recomendação de Investimento:</h3>").replace("2. Resumo Geral da Análise:","<br><h3>2. Resumo Geral da Análise:</h3>").replace("3. Detalhamento da recomendação de Investimento:","<br><h3>3. Detalhamento da recomendação de Investimento:</h3>").replace("3. Detalhamento da Recomendação de Investimento:","<br><h3>3. Detalhamento da Recomendação de Investimento:</h3>")
 
     relatorioEmail = f"""
 <h2>Relatório gerado na data {time.strftime('%d/%m/%Y %H:%M:%S')}</h2>
 <h3>
 Esta é uma análise feita por IA, portanto pode conter erros.<br>
 É recomendado que você verifique os fatos antes de qualquer movimentação financeira.<br>
-Tendo consiência disso, o desenvolvedor do programa não se responsabiliza por qualquer erro ou prejuízo causado por este relatório.<br><br>
+Tendo consciência disso, o desenvolvedor do programa não se responsabiliza por qualquer erro ou prejuízo causado por este relatório.<br><br>
 Boa leitura!
 </h3>
 
@@ -205,7 +207,7 @@ Boa leitura!
 
 
 <h2> → Relatório gerado por IA (Gemini) com base nos dados extraídos:</h2>
-{relatorioGemini.replace('\n','<br>').replace("1.","<br><h3>1.</h3>").replace("2.","<br><h3>2.</h3>").replace("3.","<br><h3>3.</h3>")}
+{relatorioGemini.replace('\n','<br>')}
 
 <h2> → Prompt utilizado para gerar o relatório</h2>
 {prompt.replace('\n','<br>')}
