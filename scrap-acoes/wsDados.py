@@ -101,7 +101,7 @@ def verificarPaginaFii(url):
 if __name__ == "__main__":
     dadosRaspados = []
     # inpTickers = input("\n\nDigite os tickers das ações e FIIs separados por vírgulas: ")
-    inpTickers = 'hglg11, snag11, mxrf11, bbas3, bbse3, taee4, alup3' # dados mocados para fins de teste
+    inpTickers = 'AAZQ11,ALUP3,ALZR11,BBAS3,BBSE3,GGBR4,HGLG11,LREN3,MXRF11,PCAR3,RBRF11,SAPR4,SNAG11,TAEE4,TOTS3,VALE3' # dados mocados para fins de teste
     tickers = [ticker.lower().replace(' ','') for ticker in inpTickers.split(",")]
     instrucaoRecomendada = ''
     instrucaoDetalhada = ''
@@ -141,26 +141,17 @@ if __name__ == "__main__":
     # Imprimir a tabela
     tabelaDados = tabulate(tabela_dados, headers=headers, tablefmt="html") 
     prompt = f"""
-Você é um especialista em análise de investimentos e mercado financeiro. Sua tarefa é analisar os dados de ações fornecidos, buscar informações complementares no site Status Invest (statusinvest.com.br) para o contexto geral do mercado e para ações similares, e, com base nisso, fornecer uma recomendação de investimento clara e um resumo da análise.
-**Dados de Ações para Análise:**
-Considere a seguinte tabela de dados de ações:
+Você é um especialista em análise de investimentos e mercado financeiro. Sua tarefa é analisar os dados de ações fornecidos, e, com base nisso, fornecer uma recomendação de investimento clara e um resumo da análise.
+**Dados de Ações para Análise:** a seguinte tabela de dados de ações:
 {tabelaDados}
 **Instruções para a IA:**
 1.  **Análise dos Dados Fornecidos:**
     * Avalie cada ativo (ticker) com base nos dados presentes na tabela (`Valor Atual`, `Menor Valor`, `Maior Valor`, `P/VP`, `Média de Dividendos (24m)`, `segmento`).
     * Interprete o `P/VP` (Preço sobre Valor Patrimonial) para identificar se o ativo está sendo negociado acima ou abaixo do seu valor patrimonial.
-    * Interprete o `Média de Dividendos (24m)` (Rendimento médio mensal 'dividendos') para cada ativo. Se `Média de Dividendos (24m)` for um cálculo ou abreviação interna, a IA pode inferir seu significado com base no contexto ou indicar uma suposição.
+    * Interprete o `Média de Dividendos (24m)` (Rendimento médio mensal 'dividendos') para cada ativo.
     * Considere a variação entre `Menor Valor` e `Maior Valor` para entender a volatilidade e o histórico de preços nas últimas 52 semanas.
-2.  **Consulta e Análise de Dados Gerais do Status Invest:**
-    * Para cada ticker listado, e para o contexto de cada segmento, consulte o site Status Invest para obter dados adicionais relevantes como:
-        * Dividend Yield (DY).
-        * Endividamento (Dívida Líquida/EBITDA).
-        * Crescimento de Receita/Lucro.
-        * Liquidez diária.
-        * Notícias recentes e eventos relevantes.
-    * Identifique e analise ações similares (do mesmo segmento ou com características de mercado semelhantes) às solicitadas no Status Invest. Compare os indicadores e o desempenho dessas ações com os da tabela fornecida.
 3.  **Geração da Recomendação de Investimento:**
-    * Com base na análise dos dados fornecidos e das informações complementares do Status Invest, forneça uma recomendação de investimento para o usuário.
+    * Com base na análise dos dados fornecidos, forneça uma recomendação de investimento para o usuário.
     * A recomendação deve ser clara, concisa e orientada para o usuário final, indicando se é uma boa oportunidade de compra, venda ou manutenção, e por quê.
 4.  **Resumo Geral da Análise:**
     * Crie um breve resumo que sintetize os principais pontos da análise, cobrindo tanto as ações solicitadas quanto as ações similares.
@@ -197,8 +188,6 @@ Sua resposta deve ser estruturada da seguinte forma:
 <h2>Relatório gerado na data {time.strftime('%d/%m/%Y %H:%M:%S')}</h2>
 <h3>
 Esta é uma análise feita por IA, portanto pode conter erros.<br>
-É recomendado que você verifique os fatos antes de qualquer movimentação financeira.<br>
-Tendo consciência disso, o desenvolvedor do programa não se responsabiliza por qualquer erro ou prejuízo causado por este relatório.<br><br>
 Boa leitura!
 </h3>
 
