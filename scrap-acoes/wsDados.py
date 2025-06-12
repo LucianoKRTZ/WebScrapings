@@ -12,6 +12,7 @@ from tabulate import tabulate  # <-- Adicionado
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'inteligencia-artificial')))
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'utils')))
 from utils import Utils
+import pandas as pd
 from wsGemini import Gemini  # <-- Importando o módulo wsDados
 #######################
 ## variaveis globais ##
@@ -48,6 +49,32 @@ def rasparDados(url):
         "Média de Dividendos (24m)":"0.0", #Rendimento mensal medio (dividendos)
         "segmento":"Não encontrado", #Segmento da acao ou FII
     }
+    dadosFiiPlanilha = {
+        "Ticker": "",#
+        "Segmento": "",#
+        "Valor atual": "",#
+        "Valor min.": "",#
+        "Valor max.": "",#
+        "Dividend yield": "",
+        "Valorização (12m)": "",
+        "P/VP": "",#
+        "Média de Dividendos (24m)": "",#
+        "Fechamento": "",
+        "Pagamento": ""
+    }
+    dadosAcoesPlanilha = {
+        "Ticker": "",#
+        "Segmento": "",#
+        "Valor atual": "",#
+        "Valor min.": "",#
+        "Valor max.": "",#
+        "Dividend yield": "",
+        "CAGR Receita (5a)": "",
+        "CAGR Lucro (5a)": "",
+        "Valorização (12m)": "",
+        "P/VP": "",#
+        "Média de Dividendos (24m)": ""#
+    }
     try:
         driver.get(url)
         verificarPropaganda()
@@ -60,12 +87,36 @@ def rasparDados(url):
             acao["segmento"] = driver.find_element(By.XPATH,'/html/body/main/div[5]/div[1]/div/div[3]/div/div[3]/div/div/div/a/strong').text
             if acao['Média de Dividendos (24m)'] == 'R$0,00':
                 acao["Média de Dividendos (24m)"] = 'R$'+driver.find_element(By.XPATH,'/html/body/main/div[3]/div/div[1]/div[2]/div[7]/div/div[1]/div[1]/div/div/strong').text
+            
+            dadosAcoesPlanilha["Dividend yield"] = driver.find_element(By.XPATH,'/html/body/main/div[2]/div/div[1]/div/div[4]/div/div[1]/strong').text
+            dadosAcoesPlanilha["CAGR Receita (5a)"] = driver.find_element(By.XPATH,'/html/body/main/div[2]/div/div[8]/div[2]/div/div[5]/div/div[1]/div/div/strong').text
+            dadosAcoesPlanilha["CAGR Lucro (5a)"] = driver.find_element(By.XPATH,'/html/body/main/div[2]/div/div[8]/div[2]/div/div[5]/div/div[2]/div/div/strong').text
+            dadosAcoesPlanilha["Valorização (12m)"] = driver.find_element(By.XPATH,'/html/body/main/div[2]/div/div[1]/div/div[5]/div/div[1]/strong').text
+
+            dadosAcoesPlanilha["Ticker"] = acao["Ticker"]
+            dadosAcoesPlanilha["Segmento"] = acao["segmento"]
+            dadosAcoesPlanilha["Valor atual"] = acao["Valor Atual"]
+            dadosAcoesPlanilha["Valor min."] = acao["Menor Valor"]
+            dadosAcoesPlanilha["Valor max."] = acao["Maior Valor"]
+            dadosAcoesPlanilha["P/VP"] = acao["P/VP"]
+            dadosAcoesPlanilha["Média de Dividendos (24m)"] = acao["Média de Dividendos (24m)"]
 
         else:
             acao["Valor Atual"] = 'R$'+driver.find_element(By.XPATH,'/html/body/main/div[2]/div[1]/div[1]/div/div[1]/strong').text
             acao["Menor Valor"] = 'R$'+driver.find_element(By.XPATH,'/html/body/main/div[2]/div[1]/div[2]/div/div[1]/strong').text
             acao["Maior Valor"] = 'R$'+driver.find_element(By.XPATH,'/html/body/main/div[2]/div[1]/div[3]/div/div[1]/strong').text
+
+            dadosFiiPlanilha["Dividend yield"] = driver.find_element(By.XPATH,'/html/body/main/div[2]/div[1]/div[4]/div/div[1]/strong').text
+            dadosFiiPlanilha["Valorização (12m)"] = driver.find_element(By.XPATH,'/html/body/main/div[2]/div[1]/div[5]/div/div[1]/strong').text
             
+            try:
+                dadosFiiPlanilha["Fechamento"] = driver.find_element(By.XPATH,'/html/body/main/div[2]/div[6]/div[3]/div/div[2]/div[2]/div[1]/div/b').text
+                dadosFiiPlanilha["Pagamento"] = driver.find_element(By.XPATH,'/html/body/main/div[2]/div[6]/div[3]/div/div[2]/div[2]/div[2]/div/b').text
+            except:
+                dadosFiiPlanilha["Fechamento"] = driver.find_element(By.XPATH,'/html/body/main/div[2]/div[7]/div[3]/div/div[2]/div[2]/div[1]/div/b').text
+                dadosFiiPlanilha["Pagamento"] = driver.find_element(By.XPATH,'/html/body/main/div[2]/div[7]/div[3]/div/div[2]/div[2]/div[2]/div/b').text
+
+
             if '/fundos-imobiliarios/' in url:
                 acao["P/VP"] = driver.find_element(By.XPATH,'/html/body/main/div[2]/div[5]/div/div[2]/div/div[1]/strong').text
                 acao["Média de Dividendos (24m)"] = 'R$'+driver.find_element(By.XPATH,'/html/body/main/div[2]/div[6]/div/div/div[1]/div/div/strong').text
@@ -75,12 +126,24 @@ def rasparDados(url):
                 acao["P/VP"] = driver.find_element(By.XPATH,'/html/body/main/div[2]/div[4]/div/div[2]/div/div[1]/strong').text
                 acao["Média de Dividendos (24m)"] = 'R$'+driver.find_element(By.XPATH,'/html/body/main/div[2]/div[5]/div/div/div[1]/div/div/strong').text
                 acao["segmento"] = driver.find_element(By.XPATH,'/html/body/main/div[4]/div/div/div[2]/div/div[6]/div/div/strong').text
+           
+            dadosFiiPlanilha["Ticker"] = acao["Ticker"]
+            dadosFiiPlanilha["Segmento"] = acao["segmento"]
+            dadosFiiPlanilha["Valor atual"] = acao["Valor Atual"]
+            dadosFiiPlanilha["Valor min."] = acao["Menor Valor"]
+            dadosFiiPlanilha["Valor max."] = acao["Maior Valor"]
+            dadosFiiPlanilha["P/VP"] = acao["P/VP"]
+            dadosFiiPlanilha["Média de Dividendos (24m)"] = acao["Média de Dividendos (24m)"]
     finally:
         try:
             acao['Média de Dividendos (24m)'] = 'R$'+str(round(float(acao['Média de Dividendos (24m)'].replace(',','.').replace('R$','')),2)).replace('.',',')
         except:
             pass
-        return acao
+        return {
+                "acao":acao,
+                "dadosFiiPlanilha":dadosFiiPlanilha,
+                "dadosAcoesPlanilha":dadosAcoesPlanilha
+               }
     
 def verificarPaginaFii(url):
     """
@@ -129,12 +192,29 @@ if __name__ == "__main__":
     # Defina os cabeçalhos das colunas de acordo com as chaves dos seus dicionários
     headers = ["Ticker", "Valor Atual", "Menor Valor", "Maior Valor", "P/VP", "Média de Dividendos (24m)", "segmento"]
 
+    # Extrair os dados de dadosRaspados em três dicionários separados
+    acoes_dict = {}
+    fiis_dict = {}
+    dadosPesquisa = {}
+
+    for item in dadosRaspados:
+        acao = item.get("acao", {})
+        dadosFii = item.get("dadosFiiPlanilha", {})
+        dadosAcoes = item.get("dadosAcoesPlanilha", {})
+
+        ticker = acao.get("Ticker", "").upper()
+        dadosPesquisa[ticker] = acao
+        if ticker.endswith("11"):
+            fiis_dict[ticker] = dadosFii
+        else:
+            acoes_dict[ticker] = dadosAcoes
+
     # Preparar os dados para a tabela
     tabela_dados = []
-    for item in dadosRaspados:
+    for ticker, acao in dadosPesquisa.items():
         linha = []
         for header in headers:
-            valor = item.get(header, "")
+            valor = acao.get(header, "")
             linha.append(valor)
         tabela_dados.append(linha)
 
@@ -202,3 +282,15 @@ Boa leitura!
 {prompt.replace('\n','<br>')}
 """
     utils.converterHTML2PDF(relatorioEmail,'/home/luciano/Área de trabalho/Relatorios/Acoes', f'Relatorio-IA-Acoes-{time.strftime("%d.%m.%Y")}')
+   
+    # Cria DataFrames a partir dos dicionários
+    df_fiis = pd.DataFrame.from_dict(fiis_dict, orient='index')
+    df_acoes = pd.DataFrame.from_dict(acoes_dict, orient='index')
+
+    # Define o caminho do arquivo Excel
+    excel_path = '/home/luciano/Área de trabalho/Relatorios/Acoes/Relatorio-Acoes-{}.xlsx'.format(time.strftime("%d.%m.%Y"))
+
+    # Salva os DataFrames em abas separadas
+    with pd.ExcelWriter(excel_path) as writer:
+        df_fiis.to_excel(writer, sheet_name='FII-Fiagro', index=False)
+        df_acoes.to_excel(writer, sheet_name='Ações', index=False)
