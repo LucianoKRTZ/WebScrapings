@@ -13,6 +13,7 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'i
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'utils')))
 from utils import Utils
 import pandas as pd
+import os
 from wsGemini import Gemini  # <-- Importando o módulo wsDados
 #######################
 ## variaveis globais ##
@@ -21,11 +22,17 @@ urlFii = "https://statusinvest.com.br/fundos-imobiliarios/"
 urlFiagros = "https://statusinvest.com.br/fiagros/"
 urlAcoes = "https://statusinvest.com.br/acoes/"
 
+pathOutput = "C:\\Macros\\Acoes\\"
+pathChromedriver = "C:\\__Programas__\\Drivers\\chromedriver\\chromedriver.exe"
+
+if not os.path.exists(pathOutput):
+    os.makedirs(pathOutput)
+
 # Configurações do Chrome
 chrome_options = Options()
 # chrome_options.add_argument("--headless")  # Executa em modo headless (sem abrir janela)
 # Caminho para o driver do Chrome (ajuste conforme necessário)
-service = Service(executable_path="/usr/local/bin/chromedriver")  # ajuste conforme o local do seu chromedriver
+service = Service(executable_path=pathChromedriver)  # ajuste conforme o local do seu chromedriver
 # Inicializa o navegador
 driver = webdriver.Chrome(service=service, options=chrome_options)
 wait03 = WebDriverWait(driver, 3)
@@ -42,7 +49,7 @@ def verificarPropaganda():
 def rasparDados(url):
     acao = {
         "Ticker":url.split("/")[-1].upper(), #Ticker da acao ou FII consultado
-        "Valor Atual":"0.0", #Valor atual de comercializacao da acao
+        "Valor Atual":"0.0", #Valor Atual de comercializacao da acao
         "Menor Valor":"0.0", #Menor valor de comercializacao da acao
         "Maior Valor":"0.0", #Maior valor de comercializacao da acao
         "P/VP":"0.0", #Preco sobre valor do patrimonio
@@ -52,7 +59,7 @@ def rasparDados(url):
     dadosFiiPlanilha = {
         "Ticker": "",#
         "Segmento": "",#
-        "Valor atual": "",#
+        "Valor Atual": "",#
         "Valor min.": "",#
         "Valor max.": "",#
         "Dividend yield": "",
@@ -65,7 +72,7 @@ def rasparDados(url):
     dadosAcoesPlanilha = {
         "Ticker": "",#
         "Segmento": "",#
-        "Valor atual": "",#
+        "Valor Atual": "",#
         "Valor min.": "",#
         "Valor max.": "",#
         "Dividend yield": "",
@@ -88,18 +95,40 @@ def rasparDados(url):
             if acao['Média de Dividendos (24m)'] == 'R$0,00':
                 acao["Média de Dividendos (24m)"] = 'R$'+driver.find_element(By.XPATH,'/html/body/main/div[3]/div/div[1]/div[2]/div[7]/div/div[1]/div[1]/div/div/strong').text
             
-            dadosAcoesPlanilha["Dividend yield"] = driver.find_element(By.XPATH,'/html/body/main/div[2]/div/div[1]/div/div[4]/div/div[1]/strong').text
-            dadosAcoesPlanilha["CAGR Receita (5a)"] = driver.find_element(By.XPATH,'/html/body/main/div[2]/div/div[8]/div[2]/div/div[5]/div/div[1]/div/div/strong').text
-            dadosAcoesPlanilha["CAGR Lucro (5a)"] = driver.find_element(By.XPATH,'/html/body/main/div[2]/div/div[8]/div[2]/div/div[5]/div/div[2]/div/div/strong').text
-            dadosAcoesPlanilha["Valorização (12m)"] = driver.find_element(By.XPATH,'/html/body/main/div[2]/div/div[1]/div/div[5]/div/div[1]/strong').text
+            if acao['Ticker'].endswith('11'):
+                dadosFiiPlanilha["Ticker"] = acao["Ticker"]
+                dadosFiiPlanilha["Segmento"] = acao["segmento"]
+                dadosFiiPlanilha["Valor Atual"] = acao["Valor Atual"]
+                dadosFiiPlanilha["Valor min."] = acao["Menor Valor"]
+                dadosFiiPlanilha["Valor max."] = acao["Maior Valor"]
+                dadosFiiPlanilha["P/VP"] = acao["P/VP"]
+                dadosFiiPlanilha["Média de Dividendos (24m)"] = acao["Média de Dividendos (24m)"]
+                dadosFiiPlanilha["Dividend yield"] = driver.find_element(By.XPATH,'/html/body/main/div[2]/div/div[1]/div/div[4]/div/div[1]/strong').text
+                dadosFiiPlanilha["Valorização (12m)"] = driver.find_element(By.XPATH,'/html/body/main/div[2]/div/div[1]/div/div[5]/div/div[1]/strong').text
+                try:
+                    dadosFiiPlanilha["Fechamento"] = driver.find_element(By.XPATH,'/html/body/main/div[2]/div[6]/div[3]/div/div[2]/div[2]/div[1]/div/b').text
+                    dadosFiiPlanilha["Pagamento"] = driver.find_element(By.XPATH,'/html/body/main/div[2]/div[6]/div[3]/div/div[2]/div[2]/div[2]/div/b').text
+                except:
+                    try:
+                        dadosFiiPlanilha["Fechamento"] = driver.find_element(By.XPATH,'/html/body/main/div[2]/div[7]/div[3]/div/div[2]/div[2]/div[1]/div/b').text
+                        dadosFiiPlanilha["Pagamento"] = driver.find_element(By.XPATH,'/html/body/main/div[2]/div[7]/div[3]/div/div[2]/div[2]/div[2]/div/b').text
+                    except:
+                        dadosFiiPlanilha["Fechamento"] = '-'
+                        dadosFiiPlanilha["Pagamento"] = '-'
 
-            dadosAcoesPlanilha["Ticker"] = acao["Ticker"]
-            dadosAcoesPlanilha["Segmento"] = acao["segmento"]
-            dadosAcoesPlanilha["Valor atual"] = acao["Valor Atual"]
-            dadosAcoesPlanilha["Valor min."] = acao["Menor Valor"]
-            dadosAcoesPlanilha["Valor max."] = acao["Maior Valor"]
-            dadosAcoesPlanilha["P/VP"] = acao["P/VP"]
-            dadosAcoesPlanilha["Média de Dividendos (24m)"] = acao["Média de Dividendos (24m)"]
+            else:
+                dadosAcoesPlanilha["Dividend yield"] = driver.find_element(By.XPATH,'/html/body/main/div[2]/div/div[1]/div/div[4]/div/div[1]/strong').text
+                dadosAcoesPlanilha["CAGR Receita (5a)"] = driver.find_element(By.XPATH,'/html/body/main/div[2]/div/div[8]/div[2]/div/div[5]/div/div[1]/div/div/strong').text
+                dadosAcoesPlanilha["CAGR Lucro (5a)"] = driver.find_element(By.XPATH,'/html/body/main/div[2]/div/div[8]/div[2]/div/div[5]/div/div[2]/div/div/strong').text
+                dadosAcoesPlanilha["Valorização (12m)"] = driver.find_element(By.XPATH,'/html/body/main/div[2]/div/div[1]/div/div[5]/div/div[1]/strong').text
+
+                dadosAcoesPlanilha["Ticker"] = acao["Ticker"]
+                dadosAcoesPlanilha["Segmento"] = acao["segmento"]
+                dadosAcoesPlanilha["Valor Atual"] = acao["Valor Atual"]
+                dadosAcoesPlanilha["Valor min."] = acao["Menor Valor"]
+                dadosAcoesPlanilha["Valor max."] = acao["Maior Valor"]
+                dadosAcoesPlanilha["P/VP"] = acao["P/VP"]
+                dadosAcoesPlanilha["Média de Dividendos (24m)"] = acao["Média de Dividendos (24m)"]
 
         else:
             acao["Valor Atual"] = 'R$'+driver.find_element(By.XPATH,'/html/body/main/div[2]/div[1]/div[1]/div/div[1]/strong').text
@@ -129,7 +158,7 @@ def rasparDados(url):
            
             dadosFiiPlanilha["Ticker"] = acao["Ticker"]
             dadosFiiPlanilha["Segmento"] = acao["segmento"]
-            dadosFiiPlanilha["Valor atual"] = acao["Valor Atual"]
+            dadosFiiPlanilha["Valor Atual"] = acao["Valor Atual"]
             dadosFiiPlanilha["Valor min."] = acao["Menor Valor"]
             dadosFiiPlanilha["Valor max."] = acao["Maior Valor"]
             dadosFiiPlanilha["P/VP"] = acao["P/VP"]
@@ -164,7 +193,7 @@ def verificarPaginaFii(url):
 if __name__ == "__main__":
     dadosRaspados = []
     # inpTickers = input("\n\nDigite os tickers das ações e FIIs separados por vírgulas: ")
-    inpTickers = 'AAZQ11,ALUP3,ALZR11,BBAS3,BBSE3,GGBR4,HGLG11,LREN3,MXRF11,PCAR3,RBRF11,SAPR4,SNAG11,TAEE4,TOTS3,VALE3' # dados mocados para fins de teste
+    inpTickers = 'AAZQ11,ALUP3,ALUP11,ALZR11,BBAS3,BBSE3,GGBR4,HGLG11,LREN3,MXRF11,PCAR3,RBRF11,SAPR4,SAPR11,SNAG11,TAEE4,TAEE11,TOTS3,VALE3' # dados mocados para fins de teste
     tickers = [ticker.lower().replace(' ','') for ticker in inpTickers.split(",")]
     instrucaoRecomendada = ''
     instrucaoDetalhada = ''
@@ -181,8 +210,12 @@ if __name__ == "__main__":
             url = urlFii + ticker
             if not verificarPaginaFii(url):
                 url = urlFiagros + ticker
+            dadosVar = rasparDados(url)
+            if dadosVar['acao']['Valor Atual'] == '0.0':
+                url = urlAcoes + ticker
+                dadosVar = rasparDados(url) 
             
-            dadosRaspados.append(rasparDados(url))
+            dadosRaspados.append(dadosVar)
         else:
             url = urlAcoes + ticker
             dadosRaspados.append(rasparDados(url))
@@ -281,14 +314,14 @@ Boa leitura!
 <h2> → Prompt utilizado para gerar o relatório</h2>
 {prompt.replace('\n','<br>')}
 """
-    utils.converterHTML2PDF(relatorioEmail,'/home/luciano/Área de trabalho/Relatorios/Acoes', f'Relatorio-IA-Acoes-{time.strftime("%d.%m.%Y")}')
+    utils.converterHTML2PDF(relatorioEmail, pathOutput, 'Relatorio-IA-Acoes-{}'.format(time.strftime("%d.%m.%Y")))
    
     # Cria DataFrames a partir dos dicionários
     df_fiis = pd.DataFrame.from_dict(fiis_dict, orient='index')
     df_acoes = pd.DataFrame.from_dict(acoes_dict, orient='index')
 
     # Define o caminho do arquivo Excel
-    excel_path = '/home/luciano/Área de trabalho/Relatorios/Acoes/Relatorio-Acoes-{}.xlsx'.format(time.strftime("%d.%m.%Y"))
+    excel_path = '{}Relatorio-Acoes-{}.xlsx'.format(pathOutput, time.strftime("%d.%m.%Y"))
 
     # Salva os DataFrames em abas separadas
     with pd.ExcelWriter(excel_path) as writer:

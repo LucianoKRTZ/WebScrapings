@@ -5,10 +5,12 @@ import pandas as pd
 from weasyprint import HTML
 from pathlib import Path
 
+pathConfig = "C:\\__Programas__\\__config__\\"
+
 
 class Utils:
     def obterAcessos(self, plataforma):
-        excel = pd.read_excel('/home/luciano/Documentos/acessos.xlsx', sheet_name='acessos')
+        excel = pd.read_excel(f'{pathConfig}acessos.xlsx', sheet_name='acessos')
         for linha in excel.itertuples():
             if linha[1] == plataforma:
                 usuario = linha[2]
@@ -17,7 +19,7 @@ class Utils:
         return usuario, senha
     
     def obterDestinatarioEmail(self, programa):
-        excel = pd.read_excel('/home/luciano/Documentos/acessos.xlsx', sheet_name='destinatarios')
+        excel = pd.read_excel(f'{pathConfig}acessos.xlsx', sheet_name='destinatarios')
         destinatarios = []
         for linha in excel.itertuples():
             if linha[1] == programa:

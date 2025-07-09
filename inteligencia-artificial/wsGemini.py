@@ -11,6 +11,7 @@ import os
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'utils')))
 from utils import Utils
 utils = Utils()
+pathChromedriver = "C:\\__Programas__\\Drivers\\chromedriver\\chromedriver.exe"
 #######################
 ## variaveis globais ##
 #######################
@@ -33,7 +34,7 @@ class Gemini:
             self.chrome_options.add_argument("--disable-save-password-bubble")
             self.chrome_options.add_experimental_option("excludeSwitches", ["enable-automation"])
             self.chrome_options.add_experimental_option("useAutomationExtension", False)
-            self.service = Service(executable_path="/usr/local/bin/chromedriver")  # ajuste conforme o local do seu chromedriver
+            self.service = Service(executable_path=pathChromedriver)  # ajuste conforme o local do seu chromedriver
             # self.chrome_options.add_argument("--headless")  # Se quiser headless, descomente
             # Inicializa o navegador com webdriver padrão
             self.driver = webdriver.Chrome(options=self.chrome_options, service=self.service)
@@ -87,20 +88,38 @@ class Gemini:
             except:
                 pass
 
+        try:
+            self.wait05.until(EC.visibility_of_element_located((By.XPATH,'/html/body/div[1]/div[1]/div[2]/c-wiz/div/div[2]/div/div/div/form/span/section[2]/div/div/section/div/div/div/ul/li[1]/div'))).click()
+            input("Pressione Enter para continuar...")
+        except:
+            pass
+
+        try:
+            txtBoxLoginRapido = self.wait05.until(EC.visibility_of_element_located((By.XPATH,'/html/body/div/div[1]/div[2]/c-wiz/div/div[1]/div[2]/h1/span')))
+            if txtBoxLoginRapido.text.lower() == 'login mais rápido':
+                self.wait03.until(EC.visibility_of_element_located((By.XPATH,'/html/body/div/div[1]/div[2]/c-wiz/div/div[3]/div/div[2]/div/div/button'))).click()
+        except:
+            pass
         if driverIniciado:
             # Inserindo prompt na caixa de texto
             # try:
             #     campoInput = self.wait05.until(EC.visibility_of_element_located((By.XPATH,'/html/body/chat-app/main/side-navigation-v2/bard-sidenav-container/bard-sidenav-content/div[2]/div/div[2]/chat-window/div/input-container/div/input-area-v2/div/div/div[1]/div/div/rich-textarea/div[1]/p')))
             # except:
             #     try:
-            campoInput = self.wait15.until(EC.visibility_of_element_located((By.XPATH,'/html/body/chat-app/main/side-navigation-v2/mat-sidenav-container/mat-sidenav-content/div/div[2]/chat-window/div/input-container/div/input-area-v2/div/div/div[1]/div/div/rich-textarea/div[1]/p')))
-            #     except:
-            #         return "Não foi possível localizar o campo de entrada do prompt."
-            # campoInput = self.driver.find_element(By.XPATH,'/html/body/chat-app/main/side-navigation-v2/mat-sidenav-container/mat-sidenav-content/div/div[2]/chat-window/div/input-container/div/input-area-v2/div/div/div[2]/div/div/rich-textarea/div[1]/p')
+
+            # Localiza a div com o placeholder "Peça ao Gemini" e acessa o <p> dentro dela
+            campoDiv = self.wait15.until(
+                EC.visibility_of_element_located(
+                    (By.CSS_SELECTOR, 'div[data-placeholder="Peça ao Gemini"]')
+                )
+            )
+            campoInput = campoDiv.find_element(By.TAG_NAME, "p")
             # Limpa o campo antes de enviar (Ctrl+A e Backspace para <p>)
-            # campoInput.send_keys(Keys.CONTROL, 'a')
-            # campoInput.send_keys(Keys.BACKSPACE)
+            campoInput.send_keys(Keys.CONTROL, 'a')
+            campoInput.send_keys(Keys.BACKSPACE)
             time.sleep(2)
+
+
             self.driver.execute_script("arguments[0].innerText = arguments[1];", campoInput, prompt)
             # campoInput.send_keys(prompt)
             while prompt.replace("\n","") not in campoInput.text:
@@ -108,17 +127,26 @@ class Gemini:
                 time.sleep(1)
             time.sleep(5)  # delay para garantir que o prompt foi inserido corretamente
             # Botao de "enviar" prompt
-            self.driver.find_element(By.XPATH,'/html/body/chat-app/main/side-navigation-v2/mat-sidenav-container/mat-sidenav-content/div/div[2]/chat-window/div/input-container/div/input-area-v2/div/div/div[3]/div/div[2]/button').click()
+            # self.driver.find_element(By.XPATH,'/html/body/chat-app/main/side-navigation-v2/mat-sidenav-container/mat-sidenav-content/div/div[2]/chat-window/div/input-container/div/input-area-v2/div/div/div[3]/div/div[2]/button').click()
+            self.driver.find_element(By.CSS_SELECTOR, '[aria-label="Enviar mensagem"]').click()
             time.sleep(35)  # delay para evitar duplo envio e espera para resposta do Gemini
 
             # Extraindo texto retornado do prompt
             try:
-                self.wait15.until(EC.visibility_of_element_located((By.XPATH,'/html/body/chat-app/main/side-navigation-v2/mat-sidenav-container/mat-sidenav-content/div/div[2]/chat-window/div/chat-window-content/div[1]/infinite-scroller/div/model-response/div/response-container/div/div[2]/div/div/message-content')))
+                # Scroll to the bottom to ensure the element is in view
+                self.driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
+                time.sleep(2)
+                self.wait15.until(EC.visibility_of_element_located((By.XPATH,'//message-content')))
                 resposta = ''
                 tentativas = 0
                 while len(resposta) < 500 and tentativas < 6:
                     time.sleep(10)
-                    resposta = self.driver.find_element(By.XPATH,'/html/body/chat-app/main/side-navigation-v2/mat-sidenav-container/mat-sidenav-content/div/div[2]/chat-window/div/chat-window-content/div[1]/infinite-scroller/div/model-response/div/response-container/div/div[2]/div/div/message-content').text
+                    message_element = self.wait15.until(
+                        EC.visibility_of_element_located(
+                            (By.CSS_SELECTOR, 'message-content')
+                        )
+                    )
+                    resposta = message_element.get_attribute("innerText")
                     tentativas += 1
             except Exception as e:
                 resposta = f"Não foi possível obter uma resposta válida do Gemini. Erro: {e}"
