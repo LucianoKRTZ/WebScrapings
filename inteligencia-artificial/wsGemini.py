@@ -14,6 +14,10 @@ utils = Utils()
 #######################
 ## variaveis globais ##
 #######################
+
+pathDriver = 'C:\\__Programas__\\Drivers\\chromedriver\\chromedriver.exe'
+
+
 class Gemini:
     def __init__(self):
         self.url = None
@@ -33,7 +37,7 @@ class Gemini:
             self.chrome_options.add_argument("--disable-save-password-bubble")
             self.chrome_options.add_experimental_option("excludeSwitches", ["enable-automation"])
             self.chrome_options.add_experimental_option("useAutomationExtension", False)
-            self.service = Service(executable_path="/usr/local/bin/chromedriver")  # ajuste conforme o local do seu chromedriver
+            self.service = Service(executable_path=pathDriver)  # ajuste conforme o local do seu chromedriver
             # self.chrome_options.add_argument("--headless")  # Se quiser headless, descomente
             # Inicializa o navegador com webdriver padrão
             self.driver = webdriver.Chrome(options=self.chrome_options, service=self.service)
@@ -93,7 +97,11 @@ class Gemini:
             #     campoInput = self.wait05.until(EC.visibility_of_element_located((By.XPATH,'/html/body/chat-app/main/side-navigation-v2/bard-sidenav-container/bard-sidenav-content/div[2]/div/div[2]/chat-window/div/input-container/div/input-area-v2/div/div/div[1]/div/div/rich-textarea/div[1]/p')))
             # except:
             #     try:
-            campoInput = self.wait15.until(EC.visibility_of_element_located((By.XPATH,'/html/body/chat-app/main/side-navigation-v2/mat-sidenav-container/mat-sidenav-content/div/div[2]/chat-window/div/input-container/div/input-area-v2/div/div/div[1]/div/div/rich-textarea/div[1]/p')))
+            campoInput = self.wait15.until(
+                EC.visibility_of_element_located(
+                    (By.XPATH, '//div[@aria-label="Insira um comando aqui"]/p')
+                )
+            )
             #     except:
             #         return "Não foi possível localizar o campo de entrada do prompt."
             # campoInput = self.driver.find_element(By.XPATH,'/html/body/chat-app/main/side-navigation-v2/mat-sidenav-container/mat-sidenav-content/div/div[2]/chat-window/div/input-container/div/input-area-v2/div/div/div[2]/div/div/rich-textarea/div[1]/p')
@@ -108,17 +116,30 @@ class Gemini:
                 time.sleep(1)
             time.sleep(5)  # delay para garantir que o prompt foi inserido corretamente
             # Botao de "enviar" prompt
-            self.driver.find_element(By.XPATH,'/html/body/chat-app/main/side-navigation-v2/mat-sidenav-container/mat-sidenav-content/div/div[2]/chat-window/div/input-container/div/input-area-v2/div/div/div[3]/div/div[2]/button').click()
+            btnEnviar = self.wait15.until(
+                EC.element_to_be_clickable(
+                    (By.XPATH, '//button[@aria-label="Enviar mensagem"]')
+                )
+            )
+            btnEnviar.click()
             time.sleep(35)  # delay para evitar duplo envio e espera para resposta do Gemini
 
             # Extraindo texto retornado do prompt
             try:
-                self.wait15.until(EC.visibility_of_element_located((By.XPATH,'/html/body/chat-app/main/side-navigation-v2/mat-sidenav-container/mat-sidenav-content/div/div[2]/chat-window/div/chat-window-content/div[1]/infinite-scroller/div/model-response/div/response-container/div/div[2]/div/div/message-content')))
+                # Aguarda o elemento com a classe markdown aparecer
+                self.wait15.until(
+                    EC.visibility_of_element_located(
+                        (By.XPATH, '//div[contains(@class, "markdown-main-panel")]')
+                    )
+                )
                 resposta = ''
                 tentativas = 0
                 while len(resposta) < 500 and tentativas < 6:
                     time.sleep(10)
-                    resposta = self.driver.find_element(By.XPATH,'/html/body/chat-app/main/side-navigation-v2/mat-sidenav-container/mat-sidenav-content/div/div[2]/chat-window/div/chat-window-content/div[1]/infinite-scroller/div/model-response/div/response-container/div/div[2]/div/div/message-content').text
+                    # Extrai o texto do elemento markdown principal
+                    resposta = self.driver.find_element(
+                        By.XPATH, '//div[contains(@class, "markdown-main-panel")]'
+                    ).text
                     tentativas += 1
             except Exception as e:
                 resposta = f"Não foi possível obter uma resposta válida do Gemini. Erro: {e}"

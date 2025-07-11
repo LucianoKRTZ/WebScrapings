@@ -1,1 +1,3 @@
 scrapVenv/
+.vscode/
+__pycache__/
