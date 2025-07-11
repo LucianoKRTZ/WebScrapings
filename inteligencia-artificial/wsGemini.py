@@ -9,8 +9,8 @@ from selenium import webdriver
 import sys
 import os
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'utils')))
-from utils import Utils
-utils = Utils()
+from daoUtils import DaoUtils
+daoUtils = DaoUtils()
 #######################
 ## variaveis globais ##
 #######################
@@ -53,7 +53,7 @@ class Gemini:
             return False
         
     def login(self):
-        usuario, senha = utils.obterAcessos("gemini")
+        usuario, senha = daoUtils.obterAcessos("gemini")
 
         self.wait03.until(EC.visibility_of_element_located((By.ID,'identifierId'))).send_keys(usuario)
 

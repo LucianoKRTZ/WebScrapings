@@ -11,7 +11,7 @@ from selenium.webdriver.common.keys import Keys
 from tabulate import tabulate  # <-- Adicionado
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'inteligencia-artificial')))
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'utils')))
-from utils import Utils
+from daoUtils import DaoUtils
 import pandas as pd
 from wsGemini import Gemini  # <-- Importando o módulo wsDados
 #######################
@@ -266,7 +266,7 @@ Sua resposta deve ser estruturada da seguinte forma:
 """
     
     gemini = Gemini()
-    utils = Utils()
+    daoUtils = DaoUtils()
 
     relatorioGemini = gemini.executarPrompt(prompt)
     
@@ -299,7 +299,7 @@ Boa leitura!
 <h2> → Prompt utilizado para gerar o relatório</h2>
 {prompt.replace('\n','<br>')}
 """
-    utils.converterHTML2PDF(relatorioEmail,pathOutput, f'Relatorio-IA-Acoes-{time.strftime("%d.%m.%Y")}')
+    daoUtils.converterHTML2PDF(relatorioEmail,pathOutput, f'Relatorio-IA-Acoes-{time.strftime("%d.%m.%Y")}')
    
     # Cria DataFrames a partir dos dicionários
     df_fiis = pd.DataFrame.from_dict(fiis_dict, orient='index')
@@ -312,3 +312,5 @@ Boa leitura!
     with pd.ExcelWriter(excel_path) as writer:
         df_fiis.to_excel(writer, sheet_name='FII-Fiagro', index=False)
         df_acoes.to_excel(writer, sheet_name='Ações', index=False)
+
+    daoUtils.organizarPastaMacroAcoes()
