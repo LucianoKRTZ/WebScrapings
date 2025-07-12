@@ -11,7 +11,7 @@ from selenium.webdriver.common.keys import Keys
 from tabulate import tabulate  # <-- Adicionado
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'inteligencia-artificial')))
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'utils')))
-from daoUtils import DaoUtils
+from daoUtils import DaoUtils #type: ignore
 import pandas as pd
 from wsGemini import Gemini  # <-- Importando o módulo wsDados
 #######################
@@ -314,3 +314,5 @@ Boa leitura!
         df_acoes.to_excel(writer, sheet_name='Ações', index=False)
 
     daoUtils.organizarPastaMacroAcoes()
+    time.sleep(2)
+    daoUtils.editarPlanilhaAcoes()

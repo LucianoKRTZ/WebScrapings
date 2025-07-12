@@ -9,7 +9,7 @@ from selenium import webdriver
 import sys
 import os
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'utils')))
-from daoUtils import DaoUtils
+from daoUtils import DaoUtils #type: ignore
 daoUtils = DaoUtils()
 #######################
 ## variaveis globais ##
