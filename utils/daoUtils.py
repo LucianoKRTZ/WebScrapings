@@ -150,6 +150,7 @@ Robô do Luciano.
         print(f"    -> Editando arquivo: {pathExcel}")
 
         self.formatarPlanilhaAcoes(pathExcel)
+        self.alinharCelulasNumericas(pathExcel)
         self.ajustarLarguraColunas(pathExcel)
 
     def formatarPlanilhaAcoes(self, pathExcel):
@@ -193,6 +194,121 @@ Robô do Luciano.
         
         wb.save(pathExcel)
         print(f"    -> Formatação monetária aplicada com sucesso!")
+    
+    def alinharCelulasNumericas(self, pathExcel):
+        """
+        Alinha todas as células com números à direita, exceto aquelas com letras ou datas (com /)
+        """
+        import openpyxl
+        from openpyxl import styles
+        import re
+        
+        print(f"    -> Alinhando células numéricas em: {pathExcel}")
+        
+        wb = openpyxl.load_workbook(pathExcel)
+        
+        for sheet_name in wb.sheetnames:
+            ws = wb[sheet_name]
+            print(f"        -> Alinhando células da aba: {sheet_name}")
+            
+            # Percorrer todas as células
+            for row in ws.iter_rows():
+                for cell in row:
+                    if cell.value is not None:
+                        cell_value_str = str(cell.value)
+                        
+                        # Verificar se é um número (int, float ou string numérica)
+                        if self.ehCelulaNumerica(cell.value, cell_value_str):
+                            # Aplicar alinhamento à direita apenas se não for data ou texto
+                            if not self.ehData(cell_value_str) and not self.contemLetras(cell_value_str):
+                                cell.alignment = styles.Alignment(horizontal='right', vertical='center')
+        
+        wb.save(pathExcel)
+        print(f"    -> Alinhamento de células numéricas aplicado com sucesso!")
+    
+    def ehCelulaNumerica(self, value, value_str):
+        """
+        Verifica se o valor é numérico (int, float ou string que representa número)
+        """
+        import re
+
+        # Se já é int ou float
+        if isinstance(value, (int, float)):
+            return True
+        
+        # Se é string, verificar se representa um número
+        if isinstance(value, str):
+            # Remover espaços
+            value_clean = value_str.strip()
+            
+            # Verificar se é uma fórmula (começar com =)
+            if value_clean.startswith('='):
+                return True
+            
+            # Verificar se é um percentual (contém %)
+            if '%' in value_clean:
+                # Remove % e verifica se o resto é numérico
+                valor_sem_percent = value_clean.replace('%', '').replace(',', '.').replace('-', '').strip()
+                try:
+                    float(valor_sem_percent)
+                    return True
+                except ValueError:
+                    pass
+            
+            # Verificar se é um número (com ou sem símbolos monetários)
+            # Remove R$, espaços, vírgulas e pontos para testar
+            test_value = re.sub(r'[R$\s,.]', '', value_clean)
+            if test_value.replace('-', '').isdigit():
+                return True
+                
+            # Verificar se é número decimal
+            return self.ehNumeroDecimal(value_clean)
+        
+        return False
+    
+    def ehNumeroDecimal(self, texto):
+        """
+        Verifica se o texto representa um número decimal
+        """
+        import re
+        # Padrão para números decimais (com vírgula ou ponto, podendo ser negativo, com % ou R$)
+        padrao_decimal = r'^[R$\s]*[-]?[\d]+[,.]?[\d]*[%]?$'
+        return bool(re.match(padrao_decimal, texto.strip()))
+    
+    def ehData(self, texto):
+        """
+        Verifica se o texto contém barra (/), indicando que pode ser uma data
+        """
+        return '/' in texto
+    
+    def contemLetras(self, texto):
+        """
+        Verifica se o texto contém letras (exceto R$ e % que são símbolos)
+        """
+        import re
+        # Remove símbolos monetários, percentuais e números, verifica se sobram letras
+        texto_sem_simbolos = re.sub(r'[R$%\s\d,.-]', '', texto)
+        return bool(re.search(r'[a-zA-ZÀ-ÿ]', texto_sem_simbolos))
+
+    def alinharCelulasAba(self, workbook, sheet_name):
+        """
+        Alinha células numéricas de uma aba específica à direita
+        """
+        from openpyxl import styles
+        
+        ws = workbook[sheet_name]
+        
+        # Percorrer todas as células da aba
+        for row in ws.iter_rows():
+            for cell in row:
+                if cell.value is not None:
+                    cell_value_str = str(cell.value)
+                    
+                    # Verificar se é um número (int, float ou string numérica)
+                    if self.ehCelulaNumerica(cell.value, cell_value_str):
+                        # Aplicar alinhamento à direita apenas se não for data ou texto
+                        if not self.ehData(cell_value_str) and not self.contemLetras(cell_value_str):
+                            cell.alignment = styles.Alignment(horizontal='right', vertical='center')
     
     def extrairValorNumerico(self, texto):
         """
