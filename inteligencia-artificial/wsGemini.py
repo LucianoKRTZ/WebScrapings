@@ -42,7 +42,8 @@ class Gemini:
             # Inicializa o navegador com webdriver padrão
             self.driver = webdriver.Chrome(options=self.chrome_options, service=self.service)
             self.wait03 = WebDriverWait(self.driver, 3)
-            self.wait05 = WebDriverWait(self.driver, 5)            
+            self.wait05 = WebDriverWait(self.driver, 5)
+            self.wait10 = WebDriverWait(self.driver, 10)
             self.wait15 = WebDriverWait(self.driver, 15)
 
             self.driver.get(url)
@@ -58,7 +59,7 @@ class Gemini:
         self.wait03.until(EC.visibility_of_element_located((By.ID,'identifierId'))).send_keys(usuario)
 
         # btnAvancar
-        self.driver.find_element(By.XPATH,'/html/body/div[1]/div[1]/div[2]/c-wiz/div/div[3]/div/div[1]/div/div/button').click()
+        self.driver.find_element(By.XPATH, '//button[.//span[text()="Avançar"]]').click()
 
         while True:
             try:
@@ -66,7 +67,7 @@ class Gemini:
 
                 time.sleep(2)
                 inpSenha.send_keys(senha)
-                self.driver.find_element(By.XPATH,'/html/body/div[1]/div[1]/div[2]/c-wiz/div/div[3]/div/div[1]/div/div/button').click()
+                self.driver.find_element(By.XPATH, '//button[.//span[text()="Avançar"]]').click()
 
 
                 break
@@ -82,6 +83,7 @@ class Gemini:
         driverIniciado = self.iniciarDriver("https://accounts.google.com/v3/signin/identifier?continue=https%3A%2F%2Fgemini.google.com%2Fapp&ec=GAZAkgU&followup=https%3A%2F%2Fgemini.google.com%2Fapp&ifkv=AdBytiPdVBJROlebm20uWviF14oLIL9GszLFUdk9kTCyAqry4-Q7dAaaBa0ZPtzkzM2r33OZA3NMXw&passive=1209600&flowName=GlifWebSignIn&flowEntry=ServiceLogin&dsh=S-1657672176%3A1749568177419730")
         time.sleep(5)
         self.login()
+        self.verificarSolicitacaoConfirmacao()
 
         try:
             self.wait05.until(EC.visibility_of_element_located((By.XPATH,'/html/body/chat-app/main/side-navigation-v2/mat-sidenav-container/mat-sidenav-content/div/div[2]/chat-window/div/input-container/condensed-tos-disclaimer/div/div[1]/button'))).click()
@@ -161,6 +163,19 @@ class Gemini:
             self.fecharDriver()
             return resposta
     
+    def verificarSolicitacaoConfirmacao(self):
+        try:
+            identificadorSpan = '//h1[.//span[text()="Confirme que é você"]]'
+            self.wait10.until(EC.visibility_of_element_located((By.XPATH, identificadorSpan)))
+            isVisible = self.driver.find_element(By.XPATH, identificadorSpan).is_displayed()
+            while isVisible:
+                print("    -> Solicitação de confirmação detectada. Aguardando confirmação...")
+                time.sleep(5)
+                isVisible = self.driver.find_element(By.XPATH, identificadorSpan).is_displayed()
+        except:
+            print(f"    -> Sem tela de confirmação de acesso!")
+            print(f"    -> Acesso liberado!")
+
     def fecharDriver(self):
         if self.driver:
             self.driver.quit()
