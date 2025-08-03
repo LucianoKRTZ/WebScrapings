@@ -319,15 +319,34 @@ Boa leitura!
     # Cria DataFrames a partir dos dicionários
     df_fiis = pd.DataFrame.from_dict(fiis_dict, orient='index')
     df_acoes = pd.DataFrame.from_dict(acoes_dict, orient='index')
+    # Seleciona apenas as colunas desejadas
+    colsMerge = [
+        "Ticker", "Segmento", "Valor Atual",
+        "Valor min.", "Valor max.", "P/VP",
+        "Média de Dividendos (24m)", "Dividend yield",
+        "Valorização (12m)"
+                 ]
+    df_merge = pd.concat([
+        df_fiis[colsMerge],
+        df_acoes[colsMerge]
+    ], ignore_index=True)
+
+
+    #Ordenando os DataFrames por Ticker
+    df_fiis.sort_values(by="Segmento", inplace=True)
+    df_acoes.sort_values(by="Segmento", inplace=True)
+    df_merge.sort_values(by="Segmento", inplace=True)
 
     # Define o caminho do arquivo Excel
     excel_path = os.path.join(pathOutput,'Relatorio-Acoes-{}.xlsx'.format(time.strftime("%d.%m.%Y")))
 
     # Salva os DataFrames em abas separadas
     with pd.ExcelWriter(excel_path) as writer:
+        df_merge.to_excel(writer, sheet_name='Geral', index=False)
         df_fiis.to_excel(writer, sheet_name='FII-Fiagro', index=False)
         df_acoes.to_excel(writer, sheet_name='Ações', index=False)
 
     daoUtils.organizarPastaMacroAcoes()
     time.sleep(2)
-    daoUtils.editarPlanilhaAcoes()
+    #daoUtils.adicionarMenuCompras()
+    daoUtils.editarPlanilhaAcoes(excel_path)
